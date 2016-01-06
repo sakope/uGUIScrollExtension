@@ -1,0 +1,2 @@
+# uGUIScrollExtension
+uGUIのScrollRectでのスワイプに吸着機能とページネーション機能とボタン遷移機能と自動送り機能を追加したもの
