@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace UGUICustom
 {
@@ -25,8 +26,9 @@ namespace UGUICustom
 		public Action<GameObject, int> onPageMoveEndCallback   = delegate {}; // ページの移動完了時に呼び出されるコールバック
 
 
-		private ScrollRect    _scrollRect;
-		private RectTransform _scrollRectTransform;
+		private ScrollRect       _scrollRect;
+		private RectTransform    _scrollRectTransform;
+		private List<GameObject> _cachedPagenationIcon = new List<GameObject>();
 
 		private bool          _isInitialized;
 
@@ -276,35 +278,38 @@ namespace UGUICustom
 
 			if (TotalPage <= 1)
 			{
-				foreach (Transform tf in _pagenationContainer)
+				foreach (GameObject go in _cachedPagenationIcon)
 				{
-					GameObject.DestroyImmediate(tf.gameObject);
+					go.SetActive(false);
 				}
 
 				return;
 			}
 
-			int diffCount;
-
-			if (_pagenationContainer.childCount > TotalPage)
+			if (TotalPage > _cachedPagenationIcon.Count)
 			{
-				diffCount = _pagenationContainer.childCount - TotalPage;
-
-				for (int i = 0; i < diffCount; i++)
-				{
-					DestroyImmediate(_pagenationContainer.GetChild(0).gameObject);
-				}
-			}
-			else
-			{
-				diffCount = TotalPage - _pagenationContainer.childCount;
+				int diffCount = TotalPage - _cachedPagenationIcon.Count;
 
 				for (int i = 0; i < diffCount; i++)
 				{
 					GameObject obj = GameObject.Instantiate(_pagenationIcon, Vector3.zero, Quaternion.identity) as GameObject;
 					obj.transform.SetParent(_pagenationContainer, true);
 					obj.transform.localScale = Vector3.one;
+					_cachedPagenationIcon.Add(obj);
 				}
+			}
+
+			var activePagenationIcons = _cachedPagenationIcon.Take(TotalPage);
+			var inactivePagenationIcons = _cachedPagenationIcon.Skip(TotalPage);
+
+			foreach (GameObject pagenationIcon in activePagenationIcons)
+			{
+				pagenationIcon.SetActive(true);
+			}
+
+			foreach (GameObject pagenationIcon in inactivePagenationIcons)
+			{
+				pagenationIcon.SetActive(false);
 			}
 
 			_ChangeBulletsInfo(CurrentPage());
